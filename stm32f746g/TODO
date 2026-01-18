@@ -1,0 +1,7 @@
+push into github
+separate heap?
+create hardcoded sample tiles (B.wav, C.wav, etc)
+create metronome button, which turns on and off metronome sound
+create 'rec' button
+
+make makefile create all object and *.d files in separate build directory

@@ -1,0 +1,7 @@
+*.o 
+*.elf
+*.d
+rtos-test
+cscope.out
+*.swp
+*.pdf
