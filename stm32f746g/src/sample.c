@@ -1,6 +1,7 @@
 #include "sample.h"
 #include "sd_diskio.h"
 
+#include <cmsis_os.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -88,7 +89,7 @@ bool sample_open(struct sample *sample, const char *name) {
   }
 
   const uint32_t wav_size = file_size - sizeof(struct wavheader);
-  int16_t *buf = calloc(1, wav_size);
+  int16_t *buf = pvPortMalloc(wav_size);
   if (!buf) {
     f_close(&fil);
     printf("No memory for file content\n");

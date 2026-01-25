@@ -34,9 +34,8 @@ void BSP_AUDIO_OUT_HalfTransfer_CallBack(void) {
   osMessagePut(Play_MessageId, (uint32_t)&irq_msg, 0);
 }
 
-#define AUDIO_BUF_ADR 0xC0000000
 #define AUDIO_BUF_SIZ 0x10000
-static char *audio_buffer = (char *)AUDIO_BUF_ADR;
+static char *audio_buffer = NULL;
 
 float half_bar_length_s = 0.0f;
 float four_bars_length_s = 0.0f;
@@ -56,9 +55,9 @@ void fill_half_buffer(bool first_half) {
   const uint32_t half_buf_size = buf_size / 2;
   int16_t *buf_start, *buf_end;
   if (first_half) {
-    buf_start = (int16_t *)AUDIO_BUF_ADR;
+    buf_start = (int16_t *)audio_buffer;
   } else {
-    buf_start = ((int16_t *)AUDIO_BUF_ADR) + half_buf_size / 2;
+    buf_start = ((int16_t *)audio_buffer) + half_buf_size / 2;
   }
   memset(buf_start, 0, half_buf_size);
   buf_end = buf_start + half_buf_size / 2;
@@ -130,7 +129,8 @@ static void play_setup(struct play *play) {
     buf_size = AUDIO_BUF_SIZ;
   }
 
-  memset(audio_buffer, 0, AUDIO_BUF_SIZ);
+  audio_buffer = pvPortMalloc(buf_size);
+  memset(audio_buffer, 0, buf_size);
 
   if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_BOTH, 50, play->samples_per_sec)) {
     while (1)
@@ -167,21 +167,21 @@ static void play_add_sample_now(const char *name) {
     uint32_t start_gap = b_start;
     uint32_t middle_gap = (start_gap + buf_size / 4) % end;
     uint32_t end_gap = (middle_gap + buf_size / 4) % end;
-    fill_buffer_with_sample(add, (int16_t *)AUDIO_BUF_ADR,
-                            ((int16_t *)AUDIO_BUF_ADR) + buf_size / 4,
+    fill_buffer_with_sample(add, (int16_t *)audio_buffer,
+                            ((int16_t *)audio_buffer) + buf_size / 4,
                             start_gap, middle_gap, end);
-    fill_buffer_with_sample(add, ((int16_t *)AUDIO_BUF_ADR) + buf_size / 4,
-                            ((int16_t *)AUDIO_BUF_ADR) + buf_size / 2,
+    fill_buffer_with_sample(add, ((int16_t *)audio_buffer) + buf_size / 4,
+                            ((int16_t *)audio_buffer) + buf_size / 2,
                             middle_gap, end_gap, end);
   } else {
     uint32_t start_gap = (b_start + buf_size / 4) % end;
     uint32_t middle_gap = (start_gap + buf_size / 4) % end;
     uint32_t end_gap = (middle_gap + buf_size / 4) % end;
-    fill_buffer_with_sample(add, ((int16_t *)AUDIO_BUF_ADR) + buf_size / 4,
-                            ((int16_t *)AUDIO_BUF_ADR) + buf_size / 2,
+    fill_buffer_with_sample(add, ((int16_t *)audio_buffer) + buf_size / 4,
+                            ((int16_t *)audio_buffer) + buf_size / 2,
                             start_gap, middle_gap, end);
-    fill_buffer_with_sample(add, (int16_t *)AUDIO_BUF_ADR,
-                            ((int16_t *)AUDIO_BUF_ADR) + buf_size / 4,
+    fill_buffer_with_sample(add, (int16_t *)audio_buffer,
+                            ((int16_t *)audio_buffer) + buf_size / 4,
                             middle_gap, end_gap, end);
   }
 }

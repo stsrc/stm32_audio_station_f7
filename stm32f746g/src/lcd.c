@@ -5,8 +5,8 @@
 LTDC_HandleTypeDef hltdc;
 
 #define FB_SIZE 0x200000
-#define FB_0_ADDR 0xC0200000
-#define FB_1_ADDR 0xC0400000
+#define FB_0_ADDR 0xC0400000
+#define FB_1_ADDR 0xC0600000
 
 struct layer {
   void *addr;

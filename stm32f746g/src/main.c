@@ -203,6 +203,11 @@ osThreadId GUI_ThreadId;
 osThreadId Play_ThreadId;
 osThreadId TouchScreen_ThreadId;
 
+static const HeapRegion_t xHeapRegions[] = {
+	{ (uint8_t *)0xC0000000, 0x400000 }, // Region 1: 4 MB
+	{ NULL, 0 } // Terminator
+};
+
 int main(void) {
   /* Configure the MPU attributes */
   MPU_Config();
@@ -237,6 +242,8 @@ int main(void) {
   /* Configure the board */
   k_BspInit();
 
+  vPortDefineHeapRegions(xHeapRegions);
+
   osMessageQDef(Gui, 8, uint32_t);
   osMessageQDef(Play, 8, uint32_t);
 
@@ -251,6 +258,15 @@ int main(void) {
 
   gui_tile_add(70, 10, 135, 75, gui_tile_sample_action, 0, gui_tile_sample_draw,
                (void *)"A.wav");
+
+  gui_tile_add(140, 10, 205, 75, gui_tile_sample_action, 0, gui_tile_sample_draw,
+               (void *)"B.wav");
+
+  gui_tile_add(210, 10, 275, 75, gui_tile_sample_action, 0, gui_tile_sample_draw,
+               (void *)"C.wav");
+
+  gui_tile_add(280, 10, 345, 75, gui_tile_sample_action, 0, gui_tile_sample_draw,
+               (void *)"D.wav");
 
   osThreadDef(GUI, gui_tiles_thread, osPriorityNormal, 0,
               4 * configMINIMAL_STACK_SIZE);

@@ -13,8 +13,8 @@
 #define LCD_WIDTH 480
 #define LCD_HEIGHT 272
 #define FB_SIZE 0x200000
-#define FB_0_ADDR 0xC0200000
-#define FB_1_ADDR 0xC0400000
+#define FB_0_ADDR 0xC0400000
+#define FB_1_ADDR 0xC0600000
 
 #define BYTES_PER_PIXEL 4
 
