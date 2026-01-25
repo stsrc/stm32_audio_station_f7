@@ -250,23 +250,28 @@ int main(void) {
   Gui_MessageId = osMessageCreate(osMessageQ(Gui), NULL);
   Play_MessageId = osMessageCreate(osMessageQ(Play), NULL);
 
+  if (!sample_init()) {
+    while (1)
+      ;
+  }
+
   gui_tile_add(10, 10, 60, 60, gui_tile_play_action, 0, gui_tile_play_draw,
-               NULL);
+               NULL, NULL);
 
   gui_tile_add(10, 65, 60, 115, gui_tile_pause_action, 0, gui_tile_pause_draw,
-               NULL);
+               NULL, NULL);
 
   gui_tile_add(70, 10, 135, 75, gui_tile_sample_action, 0, gui_tile_sample_draw,
-               (void *)"A.wav");
+               (void *)"A.wav", gui_tile_sample_load);
 
   gui_tile_add(140, 10, 205, 75, gui_tile_sample_action, 0, gui_tile_sample_draw,
-               (void *)"B.wav");
+               (void *)"B.wav", gui_tile_sample_load);
 
   gui_tile_add(210, 10, 275, 75, gui_tile_sample_action, 0, gui_tile_sample_draw,
-               (void *)"C.wav");
+               (void *)"C.wav", gui_tile_sample_load);
 
   gui_tile_add(280, 10, 345, 75, gui_tile_sample_action, 0, gui_tile_sample_draw,
-               (void *)"D.wav");
+               (void *)"D.wav", gui_tile_sample_load);
 
   osThreadDef(GUI, gui_tiles_thread, osPriorityNormal, 0,
               4 * configMINIMAL_STACK_SIZE);

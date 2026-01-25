@@ -26,7 +26,8 @@ osMessageQId Gui_MessageId;
 
 void gui_tile_add(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
                   void (*action)(struct tile *), uint8_t level,
-                  void (*draw)(struct tile *), void *priv) {
+                  void (*draw)(struct tile *), void *priv,
+		  void (*init)(struct tile *)) {
   static uint8_t last_level = 0;
   if (x0 > x1 || y0 > y1 || !action || !draw || last_level > level) {
     printf("%s(): wrong arguments\n", __func__);
@@ -47,6 +48,10 @@ void gui_tile_add(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
   tmp->action = action;
   tmp->draw = draw;
   tmp->priv = priv;
+
+  if (init) {
+	init(tmp);
+  }
 }
 
 static struct tile *gui_tile_search(uint16_t x, uint16_t y) {
@@ -122,6 +127,10 @@ void gui_tile_sample_action(struct tile *tile) {
   msg->op = ADD;
   msg->data.name = (const char *)tile->priv;
   osMessagePut(Play_MessageId, (uint32_t)msg, 0);
+}
+
+void gui_tile_sample_load(struct tile *tile) {
+  sample_open((const char *)tile->priv);
 }
 
 void gui_tile_play_action(struct tile *tile) {

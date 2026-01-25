@@ -152,8 +152,6 @@ extern SAI_HandleTypeDef haudio_out_sai;
 
 #define MARGIN 32
 
-struct sample *sample = NULL;
-
 static void play_add_sample_now(const char *name) {
   if (!initialized) {
     return;
@@ -162,6 +160,10 @@ static void play_add_sample_now(const char *name) {
   uint32_t samples_sent = (buf_size / 2 - ndtr + MARGIN) % (buf_size / 2);
   uint32_t b_start = buffer_start;
   uint32_t sample_start = (b_start + samples_sent) % end;
+  struct sample *sample = sample_get(name);
+  if (!sample) {
+	  return;
+  }
   struct audio_sample *add = play_add_sample(sample, sample_start);
   if (samples_sent < buf_size / 2 / 2) {
     uint32_t start_gap = b_start;
@@ -187,17 +189,6 @@ static void play_add_sample_now(const char *name) {
 }
 
 void play_thread(void const *arg) {
-  sample = calloc(1, sizeof(struct sample));
-  if (!sample_init()) {
-    while (1)
-      ;
-  }
-
-  if (!sample_open(sample, "A.wav")) {
-    while (1)
-      ;
-  }
-
   while (1) {
     osEvent evt = osMessageGet(Play_MessageId, osWaitForever);
     struct play_message *msg = (struct play_message *)evt.value.p;

@@ -23,7 +23,8 @@ struct tile {
 
 void gui_tile_add(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
                   void (*action)(struct tile *), uint8_t level,
-                  void (*draw)(struct tile *), void *priv);
+                  void (*draw)(struct tile *), void *priv,
+		  void (*init)(struct tile *));
 
 void gui_tile_draw_all();
 
@@ -33,6 +34,7 @@ void gui_tiles_thread(void const *arg);
 
 void gui_tile_sample_draw(struct tile *tile);
 void gui_tile_sample_action(struct tile *tile);
+void gui_tile_sample_load(struct tile *tile);
 
 void gui_tile_play_draw(struct tile *tile);
 void gui_tile_play_action(struct tile *tile);

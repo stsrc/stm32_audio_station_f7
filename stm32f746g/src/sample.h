@@ -13,7 +13,10 @@ struct sample {
 };
 
 bool sample_init();
-bool sample_open(struct sample *sample, const char *name);
-void sample_delete(struct sample *sample);
+
+bool sample_open(const char *name);
+void sample_delete(const char *name);
+
+struct sample * sample_get(const char *name);
 
 #endif
