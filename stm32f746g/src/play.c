@@ -42,8 +42,6 @@ float four_bars_length_s = 0.0f;
 uint32_t to_fill_start = 0;
 static struct audio_sample head = {0};
 
-static bool initialized = false;
-
 struct play play_settings = {0};
 
 // sample rate means 16-bit pairs for left and right channel, so 2 times more
@@ -138,14 +136,17 @@ static void play_remove_all_matching_samples(const char *name) {
   }
 }
 
-static void play_setup(struct play *play) {
-  half_bar_length_s = 0.5f / (((float)play->BPM) / 60.0f);
+static void play_setup() {
+  if (play_settings.running) {
+	return;
+  }
+  half_bar_length_s = 0.5f / (((float)play_settings.BPM) / 60.0f);
   four_bars_length_s = 2.0f * half_bar_length_s * 4.0f;
 
-  end = time_to_samples(four_bars_length_s, play->samples_per_sec);
+  end = time_to_samples(four_bars_length_s, play_settings.samples_per_sec);
   end += end % 2;
 
-  buf_size = (half_bar_length_s * (float)play->samples_per_sec) * 2.0f + 0.5f;
+  buf_size = (half_bar_length_s * (float)play_settings.samples_per_sec) * 2.0f + 0.5f;
   buf_size *= sizeof(uint16_t);
   if (buf_size > AUDIO_BUF_SIZ) {
     buf_size = AUDIO_BUF_SIZ;
@@ -154,13 +155,11 @@ static void play_setup(struct play *play) {
   audio_buffer = pvPortMalloc(buf_size);
   memset(audio_buffer, 0, buf_size);
 
-  if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_BOTH, 50, play->samples_per_sec)) {
+  if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_BOTH, 50, play_settings.samples_per_sec)) {
     while (1)
       ;
   }
   BSP_AUDIO_OUT_SetAudioFrameSlot(CODEC_AUDIOFRAME_SLOT_02);
-
-  initialized = true;
 
   buffer_start = 0;
   buffer_stop = (buf_size / 2) % end;
@@ -168,6 +167,7 @@ static void play_setup(struct play *play) {
     fill_half_buffer(!i);
   }
   BSP_AUDIO_OUT_Play((uint16_t *)audio_buffer, buf_size);
+  play_settings.running = true;
 }
 
 extern SAI_HandleTypeDef haudio_out_sai;
@@ -175,7 +175,7 @@ extern SAI_HandleTypeDef haudio_out_sai;
 #define MARGIN 32
 
 static void play_add_sample_now(const char *name) {
-  if (!initialized) {
+  if (!play_settings.running) {
     return;
   }
   uint32_t ndtr = haudio_out_sai.hdmatx->Instance->NDTR;
@@ -235,8 +235,9 @@ void play_thread(void const *arg) {
     struct play_message *msg = (struct play_message *)evt.value.p;
     switch (msg->op) {
     case SETUP:
-      play_setup(&msg->data.settings);
-      play_settings = msg->data.settings;
+      play_settings.BPM = msg->data.settings.BPM;
+      play_settings.samples_per_sec = msg->data.settings.samples_per_sec;
+      play_setup();
       free(msg);
       break;
     case RESUME:
@@ -261,7 +262,7 @@ void play_thread(void const *arg) {
       free(msg);
       break;
     case FILL_BUFFER:
-      fill_half_buffer(msg->data.first_half); // TODO why no free?
+      fill_half_buffer(msg->data.first_half);
       break;
     case METRONOME:
       if (play_settings.metronome_name) {
