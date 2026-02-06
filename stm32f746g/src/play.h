@@ -11,6 +11,7 @@ extern osMessageQId Play_MessageId;
 struct play {
   uint32_t BPM;
   uint32_t samples_per_sec;
+  bool metronome_enabled;
 };
 
 enum play_op {
@@ -21,6 +22,7 @@ enum play_op {
   DELETE_ALL,
   ADD,
   FILL_BUFFER,
+  METRONOME,
 };
 
 struct play_message {

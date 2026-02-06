@@ -261,6 +261,9 @@ int main(void) {
   gui_tile_add(10, 65, 60, 115, gui_tile_pause_action, 0, gui_tile_pause_draw,
                NULL, NULL);
 
+  gui_tile_add(10, 120, 60, 170, gui_tile_metronome_action, 0, gui_tile_metronome_draw,
+	       (void *)"tick.wav", gui_tile_sample_load);
+
   gui_tile_add(70, 10, 135, 75, gui_tile_sample_action, 0, gui_tile_sample_draw,
                (void *)"A.wav", gui_tile_sample_load);
 

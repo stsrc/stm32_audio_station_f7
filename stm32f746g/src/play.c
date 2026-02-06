@@ -212,6 +212,7 @@ void play_thread(void const *arg) {
       break;
     case DELETE_ALL:
       play_remove_all();
+      play_settings.metronome_enabled = false;
       free(msg);
       break;
     case ADD:
@@ -219,7 +220,16 @@ void play_thread(void const *arg) {
       free(msg);
       break;
     case FILL_BUFFER:
-      fill_half_buffer(msg->data.first_half);
+      fill_half_buffer(msg->data.first_half); // TODO why no free?
+      break;
+    case METRONOME:
+      if (!play_settings.metronome_enabled) {
+	      struct sample *sample = sample_get(msg->data.name);
+	      for (uint32_t i = 0; i < end; i += end / 4)
+		      play_add_sample(sample, i);
+	      play_settings.metronome_enabled = true;
+      }
+      free(msg);
       break;
     default:
     }

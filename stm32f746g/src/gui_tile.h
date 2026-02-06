@@ -42,4 +42,7 @@ void gui_tile_play_action(struct tile *tile);
 void gui_tile_pause_draw(struct tile *tile);
 void gui_tile_pause_action(struct tile *tile);
 
+void gui_tile_metronome_draw(struct tile *tile);
+void gui_tile_metronome_action(struct tile *tile);
+
 #endif

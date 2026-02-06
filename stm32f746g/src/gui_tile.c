@@ -116,6 +116,19 @@ void gui_tile_pause_draw(struct tile *tile) {
   BSP_LCD_DrawRect(x_half_pos + 2, tile->y0 + 10, 4, y_width - 20);
 }
 
+void gui_tile_metronome_draw(struct tile *tile) {
+  BSP_LCD_SetTextColor(0xffaaaaaa);
+  BSP_LCD_SetBackColor(0xff000000);
+  BSP_LCD_DrawRect(tile->x0, tile->y0, tile->x1 - tile->x0,
+                   tile->y1 - tile->y0);
+  BSP_LCD_DrawLine(tile->x0 + 5, tile->y1 - 5, tile->x1 - 5, tile->y1 - 5);
+  uint32_t x_width = tile->x1 - tile->x0;
+  uint32_t x_half_pos = tile->x0 + x_width / 2;
+  BSP_LCD_DrawLine(x_half_pos, tile->y0 + 5, x_half_pos - 10, tile->y1 - 5);
+  BSP_LCD_DrawLine(x_half_pos, tile->y0 + 5, x_half_pos + 10, tile->y1 - 5);
+  BSP_LCD_DrawLine(x_half_pos + 15, tile->y0 + 10, x_half_pos, tile->y1 - 10);
+}
+
 void gui_tile_sample_action(struct tile *tile) {
   struct play_message *msg = malloc(sizeof(struct play_message));
   if (!msg) {
@@ -141,6 +154,17 @@ void gui_tile_play_action(struct tile *tile) {
   msg->op = SETUP;
   msg->data.settings.BPM = 90;
   msg->data.settings.samples_per_sec = 44100;
+  osMessagePut(Play_MessageId, (uint32_t)msg, 0);
+}
+
+void gui_tile_metronome_action(struct tile *tile) {
+  struct play_message *msg = malloc(sizeof(struct play_message));
+  if (!msg) {
+    printf("No mem\n");
+    return;
+  }
+  msg->op = METRONOME;
+  msg->data.name = (const char *)tile->priv;
   osMessagePut(Play_MessageId, (uint32_t)msg, 0);
 }
 
