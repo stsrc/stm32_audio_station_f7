@@ -147,7 +147,7 @@ void gui_tile_sample_load(struct tile *tile) {
 }
 
 void gui_tile_play_action(struct tile *tile) {
-  struct play_message *msg = malloc(sizeof(struct play_message));
+  struct play_message *msg = calloc(1, sizeof(struct play_message));
   if (!msg) {
     return;
   }
@@ -165,6 +165,16 @@ void gui_tile_metronome_action(struct tile *tile) {
   }
   msg->op = METRONOME;
   msg->data.name = (const char *)tile->priv;
+  osMessagePut(Play_MessageId, (uint32_t)msg, 0);
+}
+
+void gui_tile_clear_action(struct tile *tile) {
+  struct play_message *msg = malloc(sizeof(struct play_message));
+  if (!msg) {
+    printf("No mem\n");
+    return;
+  }
+  msg->op = DELETE_ALL;
   osMessagePut(Play_MessageId, (uint32_t)msg, 0);
 }
 

@@ -12,6 +12,7 @@ struct play {
   uint32_t BPM;
   uint32_t samples_per_sec;
   bool metronome_enabled;
+  char *metronome_name;
 };
 
 enum play_op {

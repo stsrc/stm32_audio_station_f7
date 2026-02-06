@@ -107,12 +107,34 @@ int play_add_sample_at_sec(struct sample *sample, float start_time) {
          NULL;
 }
 
+static void _remove_at_head() {
+    struct audio_sample *tmp = head.next;
+    head = *head.next;
+    free(tmp);
+}
+
 void play_remove_all() {
-  struct audio_sample *remove = head.next;
-  while (remove) {
-    struct audio_sample *tmp = remove->next;
-    free(remove);
-    remove = tmp;
+  while (head.sample) {
+    _remove_at_head();
+  }
+}
+
+static void play_remove_all_matching_samples(const char *name) {
+  struct audio_sample *remove = &head;
+  struct audio_sample *prev = NULL;
+  while (remove->sample) {
+	if (!strcmp(remove->sample->name, name)) {
+		if (prev) {
+			prev->next = remove->next;
+			free(remove);
+			remove = prev->next;
+		} else {
+		    _remove_at_head();
+		}
+	} else {
+		prev = remove;
+		remove = remove->next;
+	}
   }
 }
 
@@ -188,6 +210,25 @@ static void play_add_sample_now(const char *name) {
   }
 }
 
+static void __enable_metronome() {
+    struct sample *sample = sample_get(play_settings.metronome_name);
+    for (uint32_t i = 0; i < end; i += end / 4) {
+      play_add_sample(sample, i);
+    }
+}
+static void play_handle_metronome() {
+    if (!play_settings.metronome_name) {
+	printf("Metronome name sample not set\n");
+	return;
+    }
+    if (!play_settings.metronome_enabled) {
+	__enable_metronome();
+    } else {
+	play_remove_all_matching_samples(play_settings.metronome_name);
+    }
+    play_settings.metronome_enabled = !play_settings.metronome_enabled;
+}
+
 void play_thread(void const *arg) {
   while (1) {
     osEvent evt = osMessageGet(Play_MessageId, osWaitForever);
@@ -223,12 +264,15 @@ void play_thread(void const *arg) {
       fill_half_buffer(msg->data.first_half); // TODO why no free?
       break;
     case METRONOME:
-      if (!play_settings.metronome_enabled) {
-	      struct sample *sample = sample_get(msg->data.name);
-	      for (uint32_t i = 0; i < end; i += end / 4)
-		      play_add_sample(sample, i);
-	      play_settings.metronome_enabled = true;
+      if (play_settings.metronome_name) {
+	if (strcmp(play_settings.metronome_name, msg->data.name)) {
+	  free((void *) play_settings.metronome_name);
+          play_settings.metronome_name = strdup(msg->data.name);
+	}
+      } else {
+        play_settings.metronome_name = strdup(msg->data.name);
       }
+      play_handle_metronome();
       free(msg);
       break;
     default:
