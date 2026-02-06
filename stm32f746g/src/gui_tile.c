@@ -27,7 +27,7 @@ osMessageQId Gui_MessageId;
 void gui_tile_add(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
                   void (*action)(struct tile *), uint8_t level,
                   void (*draw)(struct tile *), void *priv,
-		  void (*init)(struct tile *)) {
+                  void (*init)(struct tile *)) {
   static uint8_t last_level = 0;
   if (x0 > x1 || y0 > y1 || !action || !draw || last_level > level) {
     printf("%s(): wrong arguments\n", __func__);
@@ -50,7 +50,7 @@ void gui_tile_add(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
   tmp->priv = priv;
 
   if (init) {
-	init(tmp);
+    init(tmp);
   }
 }
 

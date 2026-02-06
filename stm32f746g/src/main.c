@@ -204,8 +204,8 @@ osThreadId Play_ThreadId;
 osThreadId TouchScreen_ThreadId;
 
 static const HeapRegion_t xHeapRegions[] = {
-	{ (uint8_t *)0xC0000000, 0x400000 }, // Region 1: 4 MB
-	{ NULL, 0 } // Terminator
+    {(uint8_t *)0xC0000000, 0x400000}, // Region 1: 4 MB
+    {NULL, 0}                          // Terminator
 };
 
 int main(void) {
@@ -261,23 +261,24 @@ int main(void) {
   gui_tile_add(10, 65, 60, 115, gui_tile_pause_action, 0, gui_tile_pause_draw,
                NULL, NULL);
 
-  gui_tile_add(10, 120, 60, 170, gui_tile_metronome_action, 0, gui_tile_metronome_draw,
-	       (void *)"tick.wav", gui_tile_sample_load);
+  gui_tile_add(10, 120, 60, 170, gui_tile_metronome_action, 0,
+               gui_tile_metronome_draw, (void *)"tick.wav",
+               gui_tile_sample_load);
 
   gui_tile_add(10, 175, 60, 225, gui_tile_clear_action, 0, gui_tile_sample_draw,
-		(void *)"Clear", NULL);
+               (void *)"CLR", NULL);
 
   gui_tile_add(70, 10, 135, 75, gui_tile_sample_action, 0, gui_tile_sample_draw,
                (void *)"A.wav", gui_tile_sample_load);
 
-  gui_tile_add(140, 10, 205, 75, gui_tile_sample_action, 0, gui_tile_sample_draw,
-               (void *)"B.wav", gui_tile_sample_load);
+  gui_tile_add(140, 10, 205, 75, gui_tile_sample_action, 0,
+               gui_tile_sample_draw, (void *)"B.wav", gui_tile_sample_load);
 
-  gui_tile_add(210, 10, 275, 75, gui_tile_sample_action, 0, gui_tile_sample_draw,
-               (void *)"C.wav", gui_tile_sample_load);
+  gui_tile_add(210, 10, 275, 75, gui_tile_sample_action, 0,
+               gui_tile_sample_draw, (void *)"C.wav", gui_tile_sample_load);
 
-  gui_tile_add(280, 10, 345, 75, gui_tile_sample_action, 0, gui_tile_sample_draw,
-               (void *)"D.wav", gui_tile_sample_load);
+  gui_tile_add(280, 10, 345, 75, gui_tile_sample_action, 0,
+               gui_tile_sample_draw, (void *)"D.wav", gui_tile_sample_load);
 
   osThreadDef(GUI, gui_tiles_thread, osPriorityNormal, 0,
               4 * configMINIMAL_STACK_SIZE);

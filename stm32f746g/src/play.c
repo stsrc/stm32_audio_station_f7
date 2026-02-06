@@ -108,9 +108,9 @@ int play_add_sample_at_sec(struct sample *sample, float start_time) {
 }
 
 static void _remove_at_head() {
-    struct audio_sample *tmp = head.next;
-    head = *head.next;
-    free(tmp);
+  struct audio_sample *tmp = head.next;
+  head = *head.next;
+  free(tmp);
 }
 
 void play_remove_all() {
@@ -123,18 +123,18 @@ static void play_remove_all_matching_samples(const char *name) {
   struct audio_sample *remove = &head;
   struct audio_sample *prev = NULL;
   while (remove->sample) {
-	if (!strcmp(remove->sample->name, name)) {
-		if (prev) {
-			prev->next = remove->next;
-			free(remove);
-			remove = prev->next;
-		} else {
-		    _remove_at_head();
-		}
-	} else {
-		prev = remove;
-		remove = remove->next;
-	}
+    if (!strcmp(remove->sample->name, name)) {
+      if (prev) {
+        prev->next = remove->next;
+        free(remove);
+        remove = prev->next;
+      } else {
+        _remove_at_head();
+      }
+    } else {
+      prev = remove;
+      remove = remove->next;
+    }
   }
 }
 
@@ -184,7 +184,7 @@ static void play_add_sample_now(const char *name) {
   uint32_t sample_start = (b_start + samples_sent) % end;
   struct sample *sample = sample_get(name);
   if (!sample) {
-	  return;
+    return;
   }
   struct audio_sample *add = play_add_sample(sample, sample_start);
   if (samples_sent < buf_size / 2 / 2) {
@@ -192,8 +192,8 @@ static void play_add_sample_now(const char *name) {
     uint32_t middle_gap = (start_gap + buf_size / 4) % end;
     uint32_t end_gap = (middle_gap + buf_size / 4) % end;
     fill_buffer_with_sample(add, (int16_t *)audio_buffer,
-                            ((int16_t *)audio_buffer) + buf_size / 4,
-                            start_gap, middle_gap, end);
+                            ((int16_t *)audio_buffer) + buf_size / 4, start_gap,
+                            middle_gap, end);
     fill_buffer_with_sample(add, ((int16_t *)audio_buffer) + buf_size / 4,
                             ((int16_t *)audio_buffer) + buf_size / 2,
                             middle_gap, end_gap, end);
@@ -202,8 +202,8 @@ static void play_add_sample_now(const char *name) {
     uint32_t middle_gap = (start_gap + buf_size / 4) % end;
     uint32_t end_gap = (middle_gap + buf_size / 4) % end;
     fill_buffer_with_sample(add, ((int16_t *)audio_buffer) + buf_size / 4,
-                            ((int16_t *)audio_buffer) + buf_size / 2,
-                            start_gap, middle_gap, end);
+                            ((int16_t *)audio_buffer) + buf_size / 2, start_gap,
+                            middle_gap, end);
     fill_buffer_with_sample(add, (int16_t *)audio_buffer,
                             ((int16_t *)audio_buffer) + buf_size / 4,
                             middle_gap, end_gap, end);
@@ -211,22 +211,22 @@ static void play_add_sample_now(const char *name) {
 }
 
 static void __enable_metronome() {
-    struct sample *sample = sample_get(play_settings.metronome_name);
-    for (uint32_t i = 0; i < end; i += end / 4) {
-      play_add_sample(sample, i);
-    }
+  struct sample *sample = sample_get(play_settings.metronome_name);
+  for (uint32_t i = 0; i < end; i += end / 4) {
+    play_add_sample(sample, i);
+  }
 }
 static void play_handle_metronome() {
-    if (!play_settings.metronome_name) {
-	printf("Metronome name sample not set\n");
-	return;
-    }
-    if (!play_settings.metronome_enabled) {
-	__enable_metronome();
-    } else {
-	play_remove_all_matching_samples(play_settings.metronome_name);
-    }
-    play_settings.metronome_enabled = !play_settings.metronome_enabled;
+  if (!play_settings.metronome_name) {
+    printf("Metronome name sample not set\n");
+    return;
+  }
+  if (!play_settings.metronome_enabled) {
+    __enable_metronome();
+  } else {
+    play_remove_all_matching_samples(play_settings.metronome_name);
+  }
+  play_settings.metronome_enabled = !play_settings.metronome_enabled;
 }
 
 void play_thread(void const *arg) {
@@ -265,10 +265,10 @@ void play_thread(void const *arg) {
       break;
     case METRONOME:
       if (play_settings.metronome_name) {
-	if (strcmp(play_settings.metronome_name, msg->data.name)) {
-	  free((void *) play_settings.metronome_name);
+        if (strcmp(play_settings.metronome_name, msg->data.name)) {
+          free((void *)play_settings.metronome_name);
           play_settings.metronome_name = strdup(msg->data.name);
-	}
+        }
       } else {
         play_settings.metronome_name = strdup(msg->data.name);
       }

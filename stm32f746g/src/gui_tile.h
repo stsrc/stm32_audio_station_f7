@@ -24,7 +24,7 @@ struct tile {
 void gui_tile_add(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
                   void (*action)(struct tile *), uint8_t level,
                   void (*draw)(struct tile *), void *priv,
-		  void (*init)(struct tile *));
+                  void (*init)(struct tile *));
 
 void gui_tile_draw_all();
 

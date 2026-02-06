@@ -30,8 +30,8 @@ static FATFS sd_fat_fs = {0};
 static char sd_path[16] = {0};
 
 struct sample_queue {
-	struct sample *sample;
-	struct sample_queue *next;
+  struct sample *sample;
+  struct sample_queue *next;
 };
 
 static struct sample_queue *head = NULL;
@@ -52,8 +52,8 @@ bool sample_init() {
 
   head = pvPortMalloc(sizeof(struct sample_queue));
   if (!head) {
-	  printf("No memory\n");
-	  return false;
+    printf("No memory\n");
+    return false;
   }
   memset(head, 0, sizeof(struct sample_queue));
   initialized = true;
@@ -131,56 +131,57 @@ static void __sample_delete(struct sample *sample) {
 }
 
 bool sample_open(const char *name) {
-	struct sample_queue *tmp;
-	for (tmp = head; tmp->sample != NULL; tmp = tmp->next) {
-                if (!strcmp(tmp->sample->name, name)) {
-			return true;
-		}
-	}
+  struct sample_queue *tmp;
+  for (tmp = head; tmp->sample != NULL; tmp = tmp->next) {
+    if (!strcmp(tmp->sample->name, name)) {
+      return true;
+    }
+  }
 
-	struct sample_queue *queue_el = pvPortMalloc(sizeof(struct sample_queue));
-	if (!queue_el) {
-		return false;
-	}
-	memset(queue_el, 0, sizeof(struct sample_queue));
-	struct sample *ptr = pvPortMalloc(sizeof(struct sample));
-	if (!ptr) {
-		vPortFree(ptr);
-		return false;
-	}
-	memset(ptr, 0, sizeof(struct sample));
+  struct sample_queue *queue_el = pvPortMalloc(sizeof(struct sample_queue));
+  if (!queue_el) {
+    return false;
+  }
+  memset(queue_el, 0, sizeof(struct sample_queue));
+  struct sample *ptr = pvPortMalloc(sizeof(struct sample));
+  if (!ptr) {
+    vPortFree(ptr);
+    return false;
+  }
+  memset(ptr, 0, sizeof(struct sample));
 
-	if (!__sample_open(ptr, name)) {
-		vPortFree(ptr);
-		vPortFree(queue_el);
-		return false;
-	}
-	tmp->next = queue_el;
-	tmp->sample = ptr;
+  if (!__sample_open(ptr, name)) {
+    vPortFree(ptr);
+    vPortFree(queue_el);
+    return false;
+  }
+  tmp->next = queue_el;
+  tmp->sample = ptr;
 
-	return true;
+  return true;
 }
 
-struct sample* sample_get(const char *name) {
-	for (struct sample_queue *tmp = head; tmp->sample != NULL; tmp = tmp->next) {
-		if (!strcmp(tmp->sample->name, name)) {
-			return tmp->sample;
-		}
-	}
-	return NULL;
+struct sample *sample_get(const char *name) {
+  for (struct sample_queue *tmp = head; tmp->sample != NULL; tmp = tmp->next) {
+    if (!strcmp(tmp->sample->name, name)) {
+      return tmp->sample;
+    }
+  }
+  return NULL;
 }
 
 void sample_delete(const char *name) {
-	struct sample_queue *prev = head;
-	for (struct sample_queue *tmp = prev->next; tmp->sample != NULL; tmp = tmp->next) {
-		if (!strcmp(tmp->sample->name, name)) {
-			if (prev) {
-			  prev->next = tmp->next;
-			}
-			__sample_delete(tmp->sample);
-			vPortFree(tmp);
-		} else {
-			prev = tmp;
-		}
-	}
+  struct sample_queue *prev = head;
+  for (struct sample_queue *tmp = prev->next; tmp->sample != NULL;
+       tmp = tmp->next) {
+    if (!strcmp(tmp->sample->name, name)) {
+      if (prev) {
+        prev->next = tmp->next;
+      }
+      __sample_delete(tmp->sample);
+      vPortFree(tmp);
+    } else {
+      prev = tmp;
+    }
+  }
 }
