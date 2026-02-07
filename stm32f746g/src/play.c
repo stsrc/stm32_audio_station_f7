@@ -62,11 +62,8 @@ void fill_half_buffer(bool first_half) {
 
   const uint32_t start_gap = to_fill_start;
   uint32_t end_gap = start_gap + half_buf_size / 2;
-  if (end_gap > end) {
-    end_gap %= end;
-  }
   fill_buffer(&head, buf_start, buf_end, start_gap, end_gap, end);
-  to_fill_start = end_gap;
+  to_fill_start = end_gap % end;
 }
 
 static struct audio_sample *play_add_sample(struct sample *sample,
@@ -178,6 +175,7 @@ static void play_add_sample_now(const char *name) {
   if (!play_settings.running) {
     return;
   }
+
   uint32_t ndtr = haudio_out_sai.hdmatx->Instance->NDTR;
   uint32_t samples_sent = (buf_size / 2 - ndtr + MARGIN) % (buf_size / 2);
   uint32_t b_start = buffer_start;
@@ -186,6 +184,7 @@ static void play_add_sample_now(const char *name) {
   if (!sample) {
     return;
   }
+
   struct audio_sample *add = play_add_sample(sample, sample_start);
   if (samples_sent < buf_size / 2 / 2) {
     uint32_t start_gap = b_start;

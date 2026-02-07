@@ -4,14 +4,12 @@ static void copy_bytes(int16_t *sample_ptr, int16_t *buf_ptr,
                        int16_t *sample_stop, int16_t *buf_stop_ptr) {
   while (sample_ptr < sample_stop && buf_ptr < buf_stop_ptr) {
     int32_t tmp = *sample_ptr + *buf_ptr;
-    /*
-     * TODO: are you sure about INT16_MAX - 1 and INT16_MIN + 1? Why those -/+
-     * 1?
-     */
-    if (tmp > INT16_MAX) {
-      tmp = INT16_MAX - 1;
-    } else if (tmp < INT16_MIN) {
-      tmp = INT16_MIN + 1;
+    if (tmp != (int16_t)tmp) {
+      if (tmp > INT16_MAX) {
+        tmp = INT16_MAX;
+      } else {
+        tmp = INT16_MIN;
+      }
     }
     *buf_ptr = (int16_t)tmp;
     buf_ptr++;
@@ -26,6 +24,11 @@ static void copy_bytes(int16_t *sample_ptr, int16_t *buf_ptr,
 void fill_buffer_with_sample(struct audio_sample *add, int16_t *buf_start,
                              int16_t *buf_end, const uint32_t start_gap,
                              const uint32_t end_gap, const uint32_t end) {
+  if (start_gap >= end) {
+    while (1)
+      ;
+  }
+
   int16_t *sample_start, *sample_stop, *buf_start_ptr, *buf_stop_ptr,
       *sample_ptr, *buf_ptr;
 

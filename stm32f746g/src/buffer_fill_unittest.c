@@ -17,10 +17,12 @@ void tearDown(void) {
 
 int32_t _mix_val(int16_t buf, int16_t sample) {
   int32_t mix = buf + sample;
-  if (mix > INT16_MAX) {
-    return INT16_MAX - 1;
-  } else if (mix < INT16_MIN) {
-    return INT16_MIN + 1;
+  if (mix != (int16_t)mix) {
+    if (mix > INT16_MAX) {
+      mix = INT16_MAX;
+    } else {
+      mix = INT16_MIN;
+    }
   }
   return mix;
 }
@@ -183,6 +185,281 @@ void test_fill_multiple_samples_simple_case(void) {
   free(buf);
 }
 
+void test_problem(void) {
+  const uint32_t end = 235200;
+  const uint8_t val = 0x11;
+  const char *name = "A.wav";
+  const uint32_t length = 110432;
+  uint32_t start_times[] = {35097, 96687, 154308, 202668, 18517, 4945};
+  struct audio_sample audio_samples[sizeof(start_times) / sizeof(uint32_t)] = {
+      0};
+  /*
+   * 35097  -> 145529
+   * 96687  -> 207119
+   * 154308 -> 29540 (w)
+   * 202668 -> 77900 (w)
+   * 18517  -> 128949
+   * 4945   -> 115377
+   */
+  for (int i = 0; i < sizeof(start_times) / sizeof(uint32_t); i++) {
+    init_audio_sample(&audio_samples[i], sizeof(int16_t) * length, val, name,
+                      start_times[i], end);
+    audio_samples[i].next = i != sizeof(start_times) / sizeof(uint32_t) - 1
+                                ? &audio_samples[i + 1]
+                                : NULL;
+  }
+
+  const int buf_size = 58800;
+  int16_t *buf = calloc(1, buf_size);
+  const uint32_t half_buf_size = buf_size / 2;
+
+  uint32_t start_gap = 0;
+  uint32_t end_gap = (start_gap + half_buf_size / 2) % end;
+  int16_t *buf_start = buf;
+  int16_t *buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf_end;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  // 0 - 29400
+  for (int i = 0; i < 4945; i++) {
+    int16_t res_val = 2 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i]);
+  }
+  for (int i = 4945; i < 18517; i++) {
+    int16_t res_val = 3 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i]);
+  }
+  for (int i = 18517; i < 29400; i++) {
+    int16_t res_val = 4 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i]);
+  }
+  memset(buf, 0, buf_size);
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf_end;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  uint32_t diff = 29400;
+  // 29400 - 58800
+  for (int i = 29400; i < 29540; i++) {
+    int16_t res_val = 4 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  for (int i = 29540; i < 35097; i++) {
+    int16_t res_val = 3 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  for (int i = 35097; i < 58800; i++) {
+    int16_t res_val = 4 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  memset(buf, 0, buf_size);
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf_end;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  diff = 58800;
+  // 58800 - 88200
+  for (int i = 58800; i < 77900; i++) {
+    int16_t res_val = 4 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  for (int i = 77900; i < 88200; i++) {
+    int16_t res_val = 3 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  memset(buf, 0, buf_size);
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf_end;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  diff = 88200;
+  // 88200 - 117600
+  for (int i = 88200; i < 96687; i++) {
+    int16_t res_val = 3 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  for (int i = 96687; i < 115377; i++) {
+    int16_t res_val = 4 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  for (int i = 115377; i < 117600; i++) {
+    int16_t res_val = 3 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  memset(buf, 0, buf_size);
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf_end;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  diff = 117600;
+  // 117600 - 147000
+  for (int i = 117600; i < 128949; i++) {
+    int16_t res_val = 3 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  for (int i = 128949; i < 145529; i++) {
+    int16_t res_val = 2 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  for (int i = 145529; i < 147000; i++) {
+    int16_t res_val = 1 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  memset(buf, 0, buf_size);
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf_end;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  diff = 147000;
+  // 147000 - 176400
+  for (int i = 147000; i < 154308; i++) {
+    int16_t res_val = 1 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  for (int i = 154308; i < 176400; i++) {
+    int16_t res_val = 2 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  memset(buf, 0, buf_size);
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf_end;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  diff = 176400;
+  // 176400 - 205800
+  for (int i = 176400; i < 202668; i++) {
+    int16_t res_val = 2 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  for (int i = 202668; i < 205800; i++) {
+    int16_t res_val = 3 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  memset(buf, 0, buf_size);
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf_end;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  diff = 205800;
+  // 205800 - 235200
+  for (int i = 205800; i < 207119; i++) {
+    int16_t res_val = 3 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  for (int i = 207119; i < 235200; i++) {
+    int16_t res_val = 2 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i - diff]);
+  }
+
+  memset(buf, 0, buf_size);
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  end_gap = (start_gap + half_buf_size / 2) % end;
+  buf_start = buf_end;
+  buf_end = buf_start + half_buf_size / 2;
+  fill_buffer(audio_samples, buf_start, buf_end, start_gap, end_gap, end);
+  start_gap = end_gap;
+
+  for (int i = 0; i < 4945; i++) {
+    int16_t res_val = 2 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i]);
+  }
+  for (int i = 4945; i < 18517; i++) {
+    int16_t res_val = 3 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i]);
+  }
+  for (int i = 18517; i < 29400; i++) {
+    int16_t res_val = 4 * (0x11 << 8 | 0x11);
+    TEST_ASSERT_EQUAL(res_val, buf[i]);
+  }
+
+  for (int i = 0; i < sizeof(start_times) / sizeof(uint32_t); i++) {
+    deinit_audio_sample(&audio_samples[i]);
+  }
+}
+
 void test_fill_single_transcending_sample(void) {
   struct audio_sample audio_sample = {0};
 
@@ -330,5 +607,6 @@ int main(void) {
   RUN_TEST(test_fill_simple_case);
   RUN_TEST(test_fill_multiple_samples_simple_case);
   RUN_TEST(test_fill_single_transcending_sample);
+  RUN_TEST(test_problem);
   return UNITY_END();
 }
