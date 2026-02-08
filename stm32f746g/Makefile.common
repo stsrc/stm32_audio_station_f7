@@ -1,6 +1,6 @@
 # name of executable
 
-ELF=$(notdir $(CURDIR)).elf
+ELF=audio_station.elf
 
 # Libroot path
 
