@@ -39,6 +39,8 @@ void gui_tile_sample_load(struct tile *tile);
 void gui_tile_play_draw(struct tile *tile);
 void gui_tile_play_action(struct tile *tile);
 
+void gui_tile_stop_action(struct tile *tile);
+
 void gui_tile_pause_draw(struct tile *tile);
 void gui_tile_pause_action(struct tile *tile);
 
@@ -46,5 +48,16 @@ void gui_tile_metronome_draw(struct tile *tile);
 void gui_tile_metronome_action(struct tile *tile);
 
 void gui_tile_clear_action(struct tile *tile);
+
+struct bpm_priv {
+	uint32_t *BPM;
+	const char *name;
+};
+
+void gui_tile_setup_action(struct tile *tile);
+void gui_tile_bpm_down_action(struct tile *tile);
+void gui_tile_bpm_up_action(struct tile *tile);
+void gui_tile_back_action(struct tile *tile);
+void gui_tile_current_bpm_draw(struct tile *tile);
 
 #endif

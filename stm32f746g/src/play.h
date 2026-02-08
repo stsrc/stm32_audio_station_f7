@@ -17,7 +17,8 @@ struct play {
 };
 
 enum play_op {
-  SETUP = 0,
+  NA = 0,
+  SETUP,
   PAUSE,
   RESUME,
   STOP,

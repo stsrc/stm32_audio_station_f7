@@ -280,6 +280,23 @@ int main(void) {
   gui_tile_add(280, 10, 345, 75, gui_tile_sample_action, 0,
                gui_tile_sample_draw, (void *)"D.wav", gui_tile_sample_load);
 
+
+  gui_tile_add(10, 230, 60, 271, gui_tile_setup_action, 0, gui_tile_sample_draw,
+	       (void *)"Setup", NULL);
+
+  gui_tile_add(10, 10, 60, 60, gui_tile_bpm_down_action, 1, gui_tile_sample_draw,
+	       (void *)"\\/", NULL);
+
+  gui_tile_add(65, 10, 140, 60, NULL, 1, gui_tile_current_bpm_draw,
+	       NULL, NULL);
+
+  gui_tile_add(145, 10, 195, 60, gui_tile_bpm_up_action, 1, gui_tile_sample_draw,
+	       (void *)"/\\", NULL);
+
+  gui_tile_add(10, 65, 60, 115, gui_tile_back_action, 1, gui_tile_sample_draw,
+	       (void *)"Back", NULL);
+
+
   osThreadDef(GUI, gui_tiles_thread, osPriorityNormal, 0,
               4 * configMINIMAL_STACK_SIZE);
   GUI_ThreadId = osThreadCreate(osThread(GUI), NULL);

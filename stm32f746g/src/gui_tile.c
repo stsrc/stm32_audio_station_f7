@@ -24,12 +24,14 @@ static uint8_t current_level = 0;
 
 osMessageQId Gui_MessageId;
 
+static uint32_t BPM = 85;
+
 void gui_tile_add(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
                   void (*action)(struct tile *), uint8_t level,
                   void (*draw)(struct tile *), void *priv,
                   void (*init)(struct tile *)) {
   static uint8_t last_level = 0;
-  if (x0 > x1 || y0 > y1 || !action || !draw || last_level > level) {
+  if (x0 > x1 || y0 > y1 || !draw || last_level > level) {
     printf("%s(): wrong arguments\n", __func__);
     return;
   }
@@ -71,10 +73,9 @@ void gui_tile_draw_all() {
   memset((void *)FB_0_ADDR, 0, FB_SIZE);
   BSP_LCD_SelectLayer(0);
   while (tmp && tmp->draw) {
-    if (current_level < tmp->level) {
-      break;
+    if (current_level == tmp->level) {
+      tmp->draw(tmp);
     }
-    tmp->draw(tmp);
     tmp = tmp->next;
   }
   BSP_LCD_Reload(LCD_RELOAD_VERTICAL_BLANKING);
@@ -91,6 +92,17 @@ void gui_tile_sample_draw(struct tile *tile) {
   BSP_LCD_DisplayStringAt(tile->x0 + 4,
                           tile->y0 + (tile->y1 - tile->y0) / 2 - 4,
                           (uint8_t *)tile->priv, LEFT_MODE);
+}
+
+void gui_tile_current_bpm_draw(struct tile *tile) {
+  BSP_LCD_SetTextColor(0xffaaaaaa);
+  BSP_LCD_SetBackColor(0xff000000);
+  BSP_LCD_SetFont(&Font16);
+  char buf[16] = {0};
+  snprintf(buf, sizeof(buf)/sizeof(char), "BPM: %lu\n", BPM);
+  BSP_LCD_DisplayStringAt(tile->x0 + 4,
+		  tile->y0 + (tile->y1 - tile->y0) / 2 - 4,
+			  (uint8_t *)buf, LEFT_MODE);
 }
 
 void gui_tile_play_draw(struct tile *tile) {
@@ -146,13 +158,24 @@ void gui_tile_sample_load(struct tile *tile) {
   sample_open((const char *)tile->priv);
 }
 
+void gui_tile_stop_action(struct tile *tile) {
+  gui_tile_clear_action(NULL);
+  struct play_message *msg = calloc(1, sizeof(struct play_message));
+  if (!msg) {
+    return;
+  }
+  msg->op = STOP;
+  osMessagePut(Play_MessageId, (uint32_t)msg, 0);
+}
+
 void gui_tile_play_action(struct tile *tile) {
   struct play_message *msg = calloc(1, sizeof(struct play_message));
   if (!msg) {
     return;
   }
+  msg = calloc(1, sizeof(struct play_message));
   msg->op = SETUP;
-  msg->data.settings.BPM = 90;
+  msg->data.settings.BPM = BPM;
   msg->data.settings.samples_per_sec = 44100;
   osMessagePut(Play_MessageId, (uint32_t)msg, 0);
 }
@@ -185,6 +208,31 @@ void gui_tile_pause_action(struct tile *tile) {
   }
   msg->op = PAUSE;
   osMessagePut(Play_MessageId, (uint32_t)msg, 0);
+}
+
+void gui_tile_bpm_up_action(struct tile *tile) {
+	BPM++;
+	gui_tile_draw_all();
+}
+
+void gui_tile_bpm_down_action(struct tile *tile) {
+	BPM--;
+	gui_tile_draw_all();
+}
+
+void gui_tile_setup_action(struct tile *tile) {
+	current_level++;
+	gui_tile_draw_all();
+}
+
+void gui_tile_back_action(struct tile *tile) {
+	if (!current_level) {
+		while(1);
+	}
+	current_level--;
+	gui_tile_draw_all();
+	gui_tile_stop_action(NULL);
+	gui_tile_play_action(NULL);
 }
 
 void gui_tiles_thread(void const *arg) {

@@ -46,7 +46,7 @@ struct play play_settings = {0};
 
 // sample rate means 16-bit pairs for left and right channel, so 2 times more
 static uint32_t time_to_samples(float time, uint32_t samples_per_sec) {
-  return 2 * (uint32_t)(time * ((float)samples_per_sec) + 0.5f);
+  return 2 * (uint32_t)(time * (float)samples_per_sec + 0.5f);
 }
 
 void fill_half_buffer(bool first_half) {
@@ -62,6 +62,9 @@ void fill_half_buffer(bool first_half) {
 
   const uint32_t start_gap = to_fill_start;
   uint32_t end_gap = start_gap + half_buf_size / 2;
+  if (end_gap > end) {
+	end_gap %= end;
+  }
   fill_buffer(&head, buf_start, buf_end, start_gap, end_gap, end);
   to_fill_start = end_gap % end;
 }
@@ -144,6 +147,7 @@ static void play_setup() {
   end += end % 2;
 
   buf_size = (half_bar_length_s * (float)play_settings.samples_per_sec) * 2.0f + 0.5f;
+  buf_size += buf_size % 2;
   buf_size *= sizeof(uint16_t);
   if (buf_size > AUDIO_BUF_SIZ) {
     buf_size = AUDIO_BUF_SIZ;
@@ -160,6 +164,7 @@ static void play_setup() {
 
   buffer_start = 0;
   buffer_stop = (buf_size / 2) % end;
+  to_fill_start = 0;
   for (int i = 0; i < 2; i++) {
     fill_half_buffer(!i);
   }
@@ -233,6 +238,9 @@ void play_thread(void const *arg) {
     osEvent evt = osMessageGet(Play_MessageId, osWaitForever);
     struct play_message *msg = (struct play_message *)evt.value.p;
     switch (msg->op) {
+    case NA:
+      free(msg);
+      break;
     case SETUP:
       play_settings.BPM = msg->data.settings.BPM;
       play_settings.samples_per_sec = msg->data.settings.samples_per_sec;
@@ -248,7 +256,12 @@ void play_thread(void const *arg) {
       free(msg);
       break;
     case STOP:
-      BSP_AUDIO_OUT_Stop(CODEC_PDWN_SW);
+      if (play_settings.running) {
+//        BSP_AUDIO_OUT_Stop(CODEC_PDWN_SW);
+        BSP_AUDIO_OUT_DeInit();
+        vPortFree(audio_buffer);
+        play_settings.running = false;
+      }
       free(msg);
       break;
     case DELETE_ALL:
