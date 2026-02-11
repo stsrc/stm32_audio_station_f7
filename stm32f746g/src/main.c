@@ -282,7 +282,7 @@ int main(void) {
 
 
   gui_tile_add(10, 230, 60, 271, gui_tile_setup_action, 0, gui_tile_sample_draw,
-	       (void *)"Setup", NULL);
+	       (void *)"Menu", NULL);
 
   gui_tile_add(10, 10, 60, 60, gui_tile_bpm_down_action, 1, gui_tile_sample_draw,
 	       (void *)"\\/", NULL);

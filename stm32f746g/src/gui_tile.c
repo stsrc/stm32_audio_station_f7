@@ -25,6 +25,8 @@ static uint8_t current_level = 0;
 osMessageQId Gui_MessageId;
 
 static uint32_t BPM = 85;
+#define BPM_MIN 0
+#define BPM_MAX 1000
 
 void gui_tile_add(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1,
                   void (*action)(struct tile *), uint8_t level,
@@ -211,12 +213,14 @@ void gui_tile_pause_action(struct tile *tile) {
 }
 
 void gui_tile_bpm_up_action(struct tile *tile) {
-	BPM++;
+	if (BPM < BPM_MAX)
+	  BPM++;
 	gui_tile_draw_all();
 }
 
 void gui_tile_bpm_down_action(struct tile *tile) {
-	BPM--;
+	if (BPM > BPM_MIN)
+	  BPM--;
 	gui_tile_draw_all();
 }
 
