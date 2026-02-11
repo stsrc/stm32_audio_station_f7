@@ -90,9 +90,22 @@ void gui_tile_sample_draw(struct tile *tile) {
   BSP_LCD_SetBackColor(0xff000000);
   BSP_LCD_DrawRect(tile->x0, tile->y0, tile->x1 - tile->x0,
                    tile->y1 - tile->y0);
-  BSP_LCD_SetFont(&Font16);
-  BSP_LCD_DisplayStringAt(tile->x0 + 4,
-                          tile->y0 + (tile->y1 - tile->y0) / 2 - 4,
+  sFONT *font = &Font16;
+  BSP_LCD_SetFont(font);
+  uint32_t x_delta = tile->x1 - tile->x0;
+  uint32_t y_delta = tile->y1 - tile->y0;
+  uint32_t text_width = font->Width * strlen(tile->priv);
+  uint32_t text_height = font->Height;
+  if (x_delta < text_width || y_delta < text_height) {
+	  printf("Tile too small for a text\n");
+	  return;
+  }
+  text_width /= 2;
+  text_height /= 2;
+  x_delta /= 2;
+  y_delta /= 2;
+  BSP_LCD_DisplayStringAt(tile->x0 + (x_delta - text_width),
+                          tile->y0 + (y_delta - text_height),
                           (uint8_t *)tile->priv, LEFT_MODE);
 }
 
