@@ -99,7 +99,7 @@ void gui_tile_current_bpm_draw(struct tile *tile) {
   BSP_LCD_SetBackColor(0xff000000);
   BSP_LCD_SetFont(&Font16);
   char buf[16] = {0};
-  snprintf(buf, sizeof(buf)/sizeof(char), "BPM: %lu\n", BPM);
+  snprintf(buf, sizeof(buf)/sizeof(char), "BPM: %lu", BPM);
   BSP_LCD_DisplayStringAt(tile->x0 + 4,
 		  tile->y0 + (tile->y1 - tile->y0) / 2 - 4,
 			  (uint8_t *)buf, LEFT_MODE);

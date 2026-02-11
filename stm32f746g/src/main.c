@@ -287,11 +287,11 @@ int main(void) {
   gui_tile_add(10, 10, 60, 60, gui_tile_bpm_down_action, 1, gui_tile_sample_draw,
 	       (void *)"\\/", NULL);
 
-  gui_tile_add(65, 10, 140, 60, NULL, 1, gui_tile_current_bpm_draw,
-	       NULL, NULL);
-
-  gui_tile_add(145, 10, 195, 60, gui_tile_bpm_up_action, 1, gui_tile_sample_draw,
+  gui_tile_add(65, 10, 115, 60, gui_tile_bpm_up_action, 1, gui_tile_sample_draw,
 	       (void *)"/\\", NULL);
+
+  gui_tile_add(120, 10, 200, 60, NULL, 1, gui_tile_current_bpm_draw,
+	       NULL, NULL);
 
   gui_tile_add(10, 65, 60, 115, gui_tile_back_action, 1, gui_tile_sample_draw,
 	       (void *)"Back", NULL);
