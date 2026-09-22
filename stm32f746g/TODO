@@ -1,6 +1,8 @@
-create hardcoded sample tiles (B.wav, C.wav, etc)
-create metronome button, which turns on and off metronome sound
+refactor gui - tiles should be in tree-like structure
 create 'rec' button
+create 'settings' button
 change optimization flags to O3 or Os
+make STM32 HAL as and git submodule
 
 make makefile create all object and *.d files in separate build directory
+rename src.elf to something more descriptive
