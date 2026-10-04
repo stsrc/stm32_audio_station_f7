@@ -25,6 +25,7 @@ static uint8_t current_level = 0;
 osMessageQId Gui_MessageId;
 
 static uint32_t BPM = 85;
+
 #define BPM_MIN 0
 #define BPM_MAX 1000
 
@@ -132,6 +133,16 @@ void gui_tile_play_draw(struct tile *tile) {
                    tile->y0 + (tile->y1 - tile->y0) / 2);
 }
 
+void gui_tile_record_draw(struct tile *tile) {
+  BSP_LCD_SetTextColor(0xffaaaaaa);
+  BSP_LCD_SetBackColor(0xff000000);
+  BSP_LCD_DrawRect(tile->x0, tile->y0, tile->x1 - tile->x0,
+                   tile->y1 - tile->y0);
+  uint16_t xpos = tile->x0 + (tile->x1 - tile->x0) / 2;
+  uint16_t ypos = tile->y0 + (tile->y1 - tile->y0) / 2;
+  BSP_LCD_DrawCircle(xpos, ypos, 20);
+}
+
 void gui_tile_pause_draw(struct tile *tile) {
   BSP_LCD_SetTextColor(0xffaaaaaa);
   BSP_LCD_SetBackColor(0xff000000);
@@ -188,10 +199,18 @@ void gui_tile_play_action(struct tile *tile) {
   if (!msg) {
     return;
   }
-  msg = calloc(1, sizeof(struct play_message));
   msg->op = SETUP;
   msg->data.settings.BPM = BPM;
   msg->data.settings.samples_per_sec = 44100;
+  osMessagePut(Play_MessageId, (uint32_t)msg, 0);
+}
+
+void gui_tile_record_action(struct tile *tile) {
+  struct play_message *msg = malloc(sizeof(struct play_message));
+  if (!msg) {
+    return;
+  }
+  msg->op = RECORD;
   osMessagePut(Play_MessageId, (uint32_t)msg, 0);
 }
 

@@ -9,6 +9,8 @@ struct audio_sample {
   uint32_t start_sample; // in samples (uint16_t) in 4 bars
   uint32_t stop_sample;  // in samples (uint16_t) in 4 bars
   struct audio_sample *next;
+  bool recorded;
+  bool to_remove;
 };
 
 void fill_buffer(struct audio_sample *head, int16_t *buf_start,

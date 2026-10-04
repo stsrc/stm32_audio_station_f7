@@ -14,6 +14,7 @@ struct play {
   bool metronome_enabled;
   char *metronome_name;
   bool running;
+  bool recording;
 };
 
 enum play_op {
@@ -21,6 +22,7 @@ enum play_op {
   SETUP,
   PAUSE,
   RESUME,
+  RECORD,
   STOP,
   DELETE_ALL,
   ADD,

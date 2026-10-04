@@ -36,7 +36,7 @@ void fill_buffer_with_sample(struct audio_sample *add, int16_t *buf_start,
     if ((start_gap < end_gap &&
          (start_gap > add->stop_sample || end_gap < add->start_sample)) ||
         ((start_gap > end_gap) &&
-         (end_gap < add->start_sample && start_gap < add->stop_sample))) {
+         (end_gap < add->start_sample && start_gap > add->stop_sample))) {
       return;
     }
     if (start_gap < end_gap) {
@@ -54,46 +54,59 @@ void fill_buffer_with_sample(struct audio_sample *add, int16_t *buf_start,
         sample_stop = add->sample->buf + (end_gap - add->start_sample);
         buf_stop_ptr = buf_start + (end_gap - start_gap);
       }
+      if (add->stop_sample <= end_gap && !add->recorded) {
+        add->to_remove = true;
+      }
       sample_ptr = sample_start;
       buf_ptr = buf_start_ptr;
       copy_bytes(sample_ptr, buf_ptr, sample_stop, buf_stop_ptr);
     } else {
-      if (add->start_sample > start_gap) {
-        sample_start = add->sample->buf;
-        buf_start_ptr = buf_start + (add->start_sample - start_gap);
-        if (add->stop_sample < end) {
-          sample_stop =
-              add->sample->buf + (add->stop_sample - add->start_sample);
-          buf_stop_ptr = buf_start + (add->stop_sample - add->start_sample);
-        } else {
-          sample_stop = add->sample->buf + (end - add->start_sample);
-          buf_stop_ptr = buf_start + (end - start_gap);
-        }
-        sample_ptr = sample_start;
-        buf_ptr = buf_start_ptr;
-
-        copy_bytes(sample_ptr, buf_ptr, sample_stop, buf_stop_ptr);
-
-        sample_start = sample_stop;
-        buf_start_ptr = buf_stop_ptr;
-        sample_ptr = sample_start;
-      } else {
-        sample_start = add->sample->buf;
-        buf_start_ptr = buf_start + (end - start_gap + add->start_sample);
-        sample_ptr = sample_start;
+      if (add->start_sample < start_gap && add->start_sample > end_gap) {
+	sample_start = add->sample->buf + (start_gap - add->start_sample);
+	buf_start_ptr = buf_start;
+	sample_stop = sample_start + (add->stop_sample - start_gap);
+	buf_stop_ptr = buf_start + (add->stop_sample - start_gap);
+	if (!add->recorded) {
+		add->to_remove = true;
+	}
+	sample_ptr = sample_start;
+	buf_ptr = buf_start_ptr;
+	copy_bytes(sample_ptr, buf_ptr, sample_stop, buf_stop_ptr);
+      } else if (add->start_sample >= start_gap && add->stop_sample < end) {
+	sample_start = add->sample->buf;
+	buf_start_ptr = buf_start + (add->start_sample - start_gap);
+	sample_stop = sample_start + (add->stop_sample - add->start_sample);
+	buf_stop_ptr = buf_start + (add->start_sample - start_gap) + (add->stop_sample - add->start_sample);
+	if (!add->recorded) {
+		add->to_remove = true;
+	}
+	sample_ptr = sample_start;
+	buf_ptr = buf_start_ptr;
+	copy_bytes(sample_ptr, buf_ptr, sample_stop, buf_stop_ptr);
+      } else if (add->start_sample >= 0 && add->stop_sample < end_gap) {
+	sample_start = add->sample->buf;
+	buf_start_ptr = buf_start + (end - start_gap) + add->start_sample;
+	sample_stop = add->sample->buf + (add->stop_sample - add->start_sample);
+	buf_stop_ptr = buf_start_ptr + (add->stop_sample - add->start_sample);
+	if (!add->recorded) {
+		add->to_remove = true;
+	}
+	sample_ptr = sample_start;
+	buf_ptr = buf_start_ptr;
+	copy_bytes(sample_ptr, buf_ptr, sample_stop, buf_stop_ptr);
+      } else if (add->start_sample >= 0 && add->stop_sample >= end_gap) {
+	sample_start = add->sample->buf;
+	buf_start_ptr = buf_start + (end - start_gap) + add->start_sample;
+	sample_stop = add->sample->buf + (end_gap - add->start_sample);
+	buf_stop_ptr = buf_start_ptr + (end_gap - add->start_sample);
+	if (!add->recorded) {
+		add->to_remove = true;
+	}
+	sample_ptr = sample_start;
+	buf_ptr = buf_start_ptr;
+	copy_bytes(sample_ptr, buf_ptr, sample_stop, buf_stop_ptr);
       }
-      if (add->stop_sample < end_gap) {
-        sample_stop = sample_start + add->stop_sample;
-        buf_stop_ptr = buf_start_ptr + add->stop_sample;
-      } else {
-        sample_stop = sample_start + end_gap;
-        buf_stop_ptr = buf_start_ptr + end_gap;
-      }
-
-      sample_ptr = sample_start;
-      buf_ptr = buf_start_ptr;
-      copy_bytes(sample_ptr, buf_ptr, sample_stop, buf_stop_ptr);
-    }
+   }
   } else {
     if (start_gap < end_gap && start_gap < add->start_sample &&
         end_gap > add->stop_sample && start_gap > add->stop_sample &&
@@ -111,6 +124,9 @@ void fill_buffer_with_sample(struct audio_sample *add, int16_t *buf_start,
         } else {
           sample_stop = add->sample->buf + (end - add->start_sample) + end_gap;
           buf_stop_ptr = buf_start_ptr + end_gap - start_gap;
+        }
+        if (add->stop_sample <= end_gap && !add->recorded) {
+          add->to_remove = true;
         }
         sample_ptr = sample_start;
         buf_ptr = buf_start_ptr;
@@ -156,6 +172,9 @@ void fill_buffer_with_sample(struct audio_sample *add, int16_t *buf_start,
         buf_stop_ptr = buf_start_ptr + end_gap;
       } else {
         sample_stop = sample_start + add->stop_sample;
+        if (!add->recorded) {
+          add->to_remove = true;
+        }
         buf_stop_ptr = buf_start_ptr + add->stop_sample;
       }
       sample_ptr = sample_start;

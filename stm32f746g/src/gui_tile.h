@@ -39,6 +39,9 @@ void gui_tile_sample_load(struct tile *tile);
 void gui_tile_play_draw(struct tile *tile);
 void gui_tile_play_action(struct tile *tile);
 
+void gui_tile_record_draw(struct tile *tile);
+void gui_tile_record_action(struct tile *tile);
+
 void gui_tile_stop_action(struct tile *tile);
 
 void gui_tile_pause_draw(struct tile *tile);

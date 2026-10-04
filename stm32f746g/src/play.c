@@ -49,6 +49,27 @@ static uint32_t time_to_samples(float time, uint32_t samples_per_sec) {
   return 2 * (uint32_t)(time * (float)samples_per_sec + 0.5f);
 }
 
+static void remove_redundant_samples() {
+  struct audio_sample *sample = &head;
+  struct audio_sample *prev = NULL;
+  while(sample && sample->next) {
+    if (sample->to_remove) {
+      if (!prev) {
+	struct audio_sample *tmp = sample->next;
+	*sample = *tmp;
+	free(tmp);
+      } else {
+	prev->next = sample->next;
+	free(sample);
+	sample = prev->next;
+      }
+    } else {
+      prev = sample;
+      sample = sample->next;
+    }
+  }
+}
+
 void fill_half_buffer(bool first_half) {
   const uint32_t half_buf_size = buf_size / 2;
   int16_t *buf_start, *buf_end;
@@ -67,10 +88,12 @@ void fill_half_buffer(bool first_half) {
   }
   fill_buffer(&head, buf_start, buf_end, start_gap, end_gap, end);
   to_fill_start = end_gap % end;
+  remove_redundant_samples();
 }
 
 static struct audio_sample *play_add_sample(struct sample *sample,
-                                            uint32_t start_time) {
+                                            uint32_t start_time,
+					    bool recorded) {
   if (start_time >= end) {
     printf("Wrong start time of sample (%lu >= %lu)\n", start_time, end);
     return NULL;
@@ -90,6 +113,7 @@ static struct audio_sample *play_add_sample(struct sample *sample,
       add->stop_sample = add->start_sample;
     }
   }
+  add->recorded = recorded;
   add->next = calloc(1, sizeof(struct audio_sample));
   return add;
 }
@@ -101,8 +125,10 @@ int play_add_sample_at_sec(struct sample *sample, float start_time) {
   }
 
   return play_add_sample(
-             sample, time_to_samples(start_time, sample->samples_per_sec)) ==
-         NULL;
+             sample,
+	     time_to_samples(start_time, sample->samples_per_sec),
+	     play_settings.recording
+	) == NULL;
 }
 
 static void _remove_at_head() {
@@ -190,7 +216,7 @@ static void play_add_sample_now(const char *name) {
     return;
   }
 
-  struct audio_sample *add = play_add_sample(sample, sample_start);
+  struct audio_sample *add = play_add_sample(sample, sample_start, play_settings.recording);
   if (samples_sent < buf_size / 2 / 2) {
     uint32_t start_gap = b_start;
     uint32_t middle_gap = (start_gap + buf_size / 4) % end;
@@ -212,12 +238,13 @@ static void play_add_sample_now(const char *name) {
                             ((int16_t *)audio_buffer) + buf_size / 4,
                             middle_gap, end_gap, end);
   }
+  remove_redundant_samples();
 }
 
 static void __enable_metronome() {
   struct sample *sample = sample_get(play_settings.metronome_name);
   for (uint32_t i = 0; i < end; i += end / 4) {
-    play_add_sample(sample, i);
+    play_add_sample(sample, i, true);
   }
 }
 static void play_handle_metronome() {
@@ -249,6 +276,10 @@ void play_thread(void const *arg) {
       break;
     case RESUME:
       BSP_AUDIO_OUT_Resume();
+      free(msg);
+      break;
+    case RECORD:
+      play_settings.recording = !play_settings.recording;
       free(msg);
       break;
     case PAUSE:

@@ -14,6 +14,8 @@
 #include "play.h"
 #include "sample.h"
 
+#include "lcd.h"
+
 #include <cmsis_os.h>
 #include <stdlib.h>
 #include <string.h>
@@ -283,6 +285,9 @@ int main(void) {
 
   gui_tile_add(10, 230, 60, 271, gui_tile_setup_action, 0, gui_tile_sample_draw,
 	       (void *)"Menu", NULL);
+
+  gui_tile_add(LCD_WIDTH - 10 - 50, 10, LCD_WIDTH - 10, 60, gui_tile_record_action,
+	       0, gui_tile_record_draw, NULL, NULL);
 
   gui_tile_add(10, 10, 60, 60, gui_tile_bpm_down_action, 1, gui_tile_sample_draw,
 	       (void *)"\\/", NULL);
