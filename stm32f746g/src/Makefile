@@ -14,12 +14,15 @@ OBJS+= sample.o buffer_fill.o ts.o gui_tile.o synth.o
 
 include $(TEMPLATEROOT)/Makefile.common
 
-UNDER_TEST=buffer_fill.c
-UNITTESTS=buffer_fill_unittest.c ../$(UNITY_SRC)/unity.c
+UNDER_TEST=buffer_fill.c synth.c
+UNITTESTS=buffer_fill_unittest.c synth_unittest.c
+UNITY_MAIN=../$(UNITY_SRC)/unity.c
 
 test : $(UNITTESTS) $(UNDER_TEST)
-	gcc -Wall -Werror -O0 -g3 -o test_runner $(UNDER_TEST) $(UNITTESTS) -I. -I../$(UNITY_SRC)
-	./test_runner
+	gcc -Wall -Werror -O0 -g3 -o test_runner_buffer_fill buffer_fill.c buffer_fill_unittest.c $(UNITY_MAIN) -I. -I../$(UNITY_SRC) 
+	./test_runner_buffer_fill
+	gcc -Wall -Werror -O0 -g3 -o test_runner_synth synth.c synth_unittest.c $(UNITY_MAIN) -I. -I../$(UNITY_SRC) -lm 
+	./test_runner_synth
 
 plot: synth.c synth_plot.c
 	gcc -Wall -Werror -O0 -g3 -o plot synth.c synth_plot.c -I. -lm
