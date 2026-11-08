@@ -72,7 +72,7 @@ LDFLAGS+= -T$(LDSCRIPT) -mcpu=cortex-m7 -mfloat-abi=hard
 LDFLAGS+= -specs=nosys.specs -L$(CURDIR) 
 LDFLAGS+= -Wall -Wl,-gc-sections,-u,main
 CFLAGS+= -mcpu=cortex-m7
-CFLAGS+= -O2 -g3 -Wall -std=gnu99 -mfloat-abi=hard
+CFLAGS+= -O1 -g3 -Wall -std=gnu99 -mfloat-abi=hard
 #CFLAGS+= -fdata-sections
 CFLAGS+= -I$(CORE) -I$(INCLUDE) -I$(INCLUDE_CORE) -I$(FreeRTOS_INCLUDE) -I$(INCLUDE_HAL) -I.
 CFLAGS+= -I$(INCLUDE_HAL_LEGACY) -I$(INCLUDE_BSP) -I$(INCLUDE_BSP_COMPONENT_FT5336)

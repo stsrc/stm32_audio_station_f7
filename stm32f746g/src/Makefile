@@ -26,16 +26,17 @@ test : $(UNITTESTS) $(UNDER_TEST)
 
 plot: synth.c synth_plot.c
 	gcc -Wall -Werror -O0 -g3 -o plot synth.c synth_plot.c -I. -lm
-	- rm ./sine.dat ./sine.gif ./triangle.dat ./triangle.gif 
+
+test_plot: plot
+	- rm ./*.dat ./*.gif
 	./plot
 	gnuplot -persist -e "set terminal gif; plot 'sine.dat' with lines" > sine.gif
-	gnuplot -persist -e "set terminal gif; plot 'triangle.dat' with lines" > triangle.gif
-	gnuplot -persist -e "set terminal gif; plot 'triangle2.dat' with lines" > triangle2.gif
-	gnuplot -persist -e "set terminal gif; plot 'square.dat' with lines" > square.gif
-	gnuplot -persist -e "set terminal gif; plot 'sawtooth.dat' with lines" > sawtooth.gif
-	sync
+	#gnuplot -persist -e "set terminal gif; plot 'triangle.dat' with lines" > triangle.gif
+	#gnuplot -persist -e "set terminal gif; plot 'triangle2.dat' with lines" > triangle2.gif
+	#gnuplot -persist -e "set terminal gif; plot 'square.dat' with lines" > square.gif
+	#gnuplot -persist -e "set terminal gif; plot 'sawtooth.dat' with lines" > sawtooth.gif
 	xdg-open ./sine.gif
-	xdg-open ./triangle.gif
-	xdg-open ./triangle2.gif
-	xdg-open ./square.gif
-	xdg-open ./sawtooth.gif
+	#xdg-open ./triangle.gif
+	#xdg-open ./triangle2.gif
+	#xdg-open ./square.gif
+	#xdg-open ./sawtooth.gif

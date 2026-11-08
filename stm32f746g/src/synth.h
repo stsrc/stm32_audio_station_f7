@@ -40,7 +40,7 @@ struct synth_part {
 	enum type type;
 	uint32_t attack;
 	uint32_t decay;
-	uint32_t sustain;
+	int16_t sustain;
 	uint32_t release;
 	int16_t vol_max;
 };
@@ -60,6 +60,7 @@ struct synth_note {
 	uint32_t start;
 	uint32_t stop;
 	uint32_t size;
+	uint32_t pressed_size;
 };
 
 int16_t *synth_fill_buffer(struct synth_note *note, uint32_t samples_per_sec, const uint32_t end);
